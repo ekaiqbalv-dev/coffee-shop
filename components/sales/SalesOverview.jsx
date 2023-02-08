@@ -35,12 +35,17 @@ const SalesOverview = () => {
     dateRangeProductCategorySoldQuantity,
     setDateRangeProductCategorySoldQuantity,
   ] = useState(["2019-04-01", "2019-04-29"]);
+  const [
+    dateRangeProductTypeSoldQuantity,
+    setDateRangeProductTypeSoldQuantity,
+  ] = useState(["2019-04-01", "2019-04-29"]);
   const [totalTargetByDate, setTotalTargetByDate] = useState([]);
   const [totalOutletType, setTotalOutletType] = useState([]);
   const [monthlyTotalReceipt, setMonthlyTotalReceipt] = useState([]);
   const [productGroupSoldQuantity, setProductGroupSoldQuantity] = useState([]);
   const [productCategorySoldQuantity, setProductCategorySoldQuantity] =
     useState([]);
+  const [productTypeSoldQuantity, setProductTypeSoldQuantity] = useState([]);
 
   const getTotalTargetByDate = async (date) => {
     const apiUrlEndpoint = "/api/sales/target/total-by-date?";
@@ -141,6 +146,28 @@ const SalesOverview = () => {
 
   const onChangDateRangeProductCategory = (_date, dateRange) => {
     setDateRangeProductCategorySoldQuantity(dateRange);
+  };
+
+  const getProductTypeSoldQuantity = async (dateRange) => {
+    const [start, end] = dateRange;
+    const apiUrlEndpoint = "/api/sales/receipt/quantity-by-product-type?";
+    const response = await fetch(
+      apiUrlEndpoint +
+        new URLSearchParams({
+          start,
+          end,
+        })
+    );
+    const res = await response.json();
+    setProductTypeSoldQuantity(res.product_type);
+  };
+
+  useEffect(() => {
+    getProductTypeSoldQuantity(dateRangeProductTypeSoldQuantity);
+  }, [dateRangeProductTypeSoldQuantity]);
+
+  const onChangDateRangeProductType = (_date, dateRange) => {
+    setDateRangeProductTypeSoldQuantity(dateRange);
   };
 
   return (
@@ -271,6 +298,7 @@ const SalesOverview = () => {
           <ResponsiveContainer height={300}>
             {monthlyTotalReceipt.length > 0 ? (
               <AreaChart
+                id="monthly_total_receipt"
                 data={monthlyTotalReceipt}
                 margin={{
                   top: 10,
@@ -344,7 +372,10 @@ const SalesOverview = () => {
           />
           <ResponsiveContainer height={300}>
             {productGroupSoldQuantity.length > 0 ? (
-              <BarChart data={productGroupSoldQuantity}>
+              <BarChart
+                id="product_group_sold_quantity"
+                data={productGroupSoldQuantity}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis
@@ -409,7 +440,10 @@ const SalesOverview = () => {
           />
           <ResponsiveContainer height={300}>
             {productCategorySoldQuantity.length > 0 ? (
-              <BarChart data={productCategorySoldQuantity}>
+              <BarChart
+                id="product_category_sold_quantity"
+                data={productCategorySoldQuantity}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis
@@ -434,6 +468,74 @@ const SalesOverview = () => {
                 />
                 <Bar dataKey="quantity" name="Quantity" fill="#0088FE">
                   {productCategorySoldQuantity.map((item) => (
+                    <Cell
+                      key={`cell-${item.name}`}
+                      fill={
+                        COLORS_SOLD_STATUS[
+                          item.status.split(" ")[0].toLowerCase()
+                        ]
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            ) : (
+              <div
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            )}
+          </ResponsiveContainer>
+        </Card>
+      </Col>
+      <Col span={24}>
+        <Card title="Product Type Sold Quantity" bordered={false}>
+          <DatePicker.RangePicker
+            value={
+              dateRangeProductTypeSoldQuantity && [
+                dayjs(dateRangeProductTypeSoldQuantity[0]),
+                dayjs(dateRangeProductTypeSoldQuantity[1]),
+              ]
+            }
+            onChange={onChangDateRangeProductType}
+            style={{ marginBottom: "16px" }}
+          />
+          <ResponsiveContainer height={300}>
+            {productTypeSoldQuantity.length > 0 ? (
+              <BarChart
+                id="product_type_sold_quantity"
+                data={productTypeSoldQuantity}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis
+                  domain={[
+                    0,
+                    Math.max(
+                      ...productTypeSoldQuantity.map((item) =>
+                        Number(item.quantity)
+                      )
+                    ),
+                  ]}
+                  tickCount={20}
+                />
+                <Tooltip />
+                <Legend
+                  payload={[
+                    { value: "High Sold", color: "#00C49F" },
+                    { value: "Medium Sold", color: "#0088FE" },
+                    { value: "Low Sold", color: "#FFBB28" },
+                  ]}
+                  formatter={(val) => val}
+                />
+                <Bar dataKey="quantity" name="Quantity" fill="#0088FE">
+                  {productTypeSoldQuantity.map((item) => (
                     <Cell
                       key={`cell-${item.name}`}
                       fill={
