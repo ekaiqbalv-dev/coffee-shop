@@ -12,18 +12,29 @@ import {
   XAxis,
   YAxis,
   Area,
+  BarChart,
+  Bar,
 } from "recharts";
 import dayjs from "dayjs";
 
 import PieChartCustomizedLabel from "@/components/chart/PieChartCustomizedLabel";
-import { COLORS_OUTLET, COLORS_TARGET } from "@/lib/constant";
+import {
+  COLORS_OUTLET,
+  COLORS_PRODUCT_GROUP,
+  COLORS_TARGET,
+} from "@/lib/constant";
 
 const SalesOverview = () => {
   const [dateTotalTarget, setDateTotalTarget] = useState("2019-04-01");
   const [monthTotalReceipt, setMonthTotalReceipt] = useState("2019-04");
+  const [
+    dateRangeProductGroupSoldQuantity,
+    setDateRangeProductGroupSoldQuantity,
+  ] = useState(["2019-04-01", "2019-04-29"]);
   const [totalTargetByDate, setTotalTargetByDate] = useState([]);
   const [totalOutletType, setTotalOutletType] = useState([]);
   const [monthlyTotalReceipt, setMonthlyTotalReceipt] = useState([]);
+  const [productGroupSoldQuantity, setProductGroupSoldQuantity] = useState([]);
 
   const getTotalTargetByDate = async (date) => {
     const apiUrlEndpoint = "/api/sales/target/total-by-date?";
@@ -80,6 +91,28 @@ const SalesOverview = () => {
 
   const onChangeMonthTotalReceipt = (_date, dateString) => {
     setMonthTotalReceipt(dateString);
+  };
+
+  const getProductGroupSoldQuantity = async (dateRange) => {
+    const [start, end] = dateRange;
+    const apiUrlEndpoint = "/api/sales/receipt/quantity-by-product-group?";
+    const response = await fetch(
+      apiUrlEndpoint +
+        new URLSearchParams({
+          start,
+          end,
+        })
+    );
+    const res = await response.json();
+    setProductGroupSoldQuantity(res.product_group);
+  };
+
+  useEffect(() => {
+    getProductGroupSoldQuantity(dateRangeProductGroupSoldQuantity);
+  }, [dateRangeProductGroupSoldQuantity]);
+
+  const onChangRange = (_date, dateRange) => {
+    setDateRangeProductGroupSoldQuantity(dateRange);
   };
 
   return (
@@ -254,6 +287,57 @@ const SalesOverview = () => {
                   fill="#ffc658"
                 />
               </AreaChart>
+            ) : (
+              <div
+                style={{
+                  height: "100%",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              </div>
+            )}
+          </ResponsiveContainer>
+        </Card>
+      </Col>
+      <Col span={24}>
+        <Card title="Product Group Sold Quantity" bordered={false}>
+          <DatePicker.RangePicker
+            onChange={onChangRange}
+            style={{ marginBottom: "16px" }}
+          />
+          <ResponsiveContainer height={300}>
+            {productGroupSoldQuantity.length > 0 ? (
+              <BarChart data={productGroupSoldQuantity}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis
+                  domain={[
+                    0,
+                    Math.max(
+                      ...productGroupSoldQuantity.map((item) =>
+                        Number(item.quantity)
+                      )
+                    ),
+                  ]}
+                  tickCount={20}
+                />
+                <Tooltip />
+                <Bar dataKey="quantity" name="Quantity" fill="black">
+                  {productGroupSoldQuantity.map((item) => (
+                    <Cell
+                      key={`cell-${item.name}`}
+                      fill={
+                        COLORS_PRODUCT_GROUP[
+                          item.name.split(" ").join("").toLowerCase()
+                        ]
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
             ) : (
               <div
                 style={{
