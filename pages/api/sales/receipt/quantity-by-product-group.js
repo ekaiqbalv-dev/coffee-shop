@@ -33,8 +33,8 @@ export default async function handler(req, res) {
         GROUP BY product_id) AS B ON A.id = B.product_id
         GROUP BY name) AS C
     `;
-    const params = Object.values(req.query);
-    const data = await query(querySql, params);
+    const [start, end] = Object.values(req.query);
+    const data = await query(querySql, [start, end]);
     res.status(200).json({ product_group: data });
   } catch (error) {
     res.status(500).json({ error: error.message });

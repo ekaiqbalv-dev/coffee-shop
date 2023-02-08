@@ -305,6 +305,12 @@ const SalesOverview = () => {
       <Col span={24}>
         <Card title="Product Group Sold Quantity" bordered={false}>
           <DatePicker.RangePicker
+            value={
+              dateRangeProductGroupSoldQuantity && [
+                dayjs(dateRangeProductGroupSoldQuantity[0]),
+                dayjs(dateRangeProductGroupSoldQuantity[1]),
+              ]
+            }
             onChange={onChangRange}
             style={{ marginBottom: "16px" }}
           />
