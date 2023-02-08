@@ -14,7 +14,7 @@ export default async function handler(req, res) {
           THEN
             'Medium sold'
           ELSE 'High sold'
-        END AS 'status_sold'
+        END AS status
       FROM
         (SELECT 
           name, SUM(total_quantity_by_product) AS quantity
