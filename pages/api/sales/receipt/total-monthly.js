@@ -15,7 +15,7 @@ export default async function handler(req, res) {
           AND YEAR(transaction_datetime) = ?
       GROUP BY DATE(transaction_datetime)
     `;
-    const params = ['4', '2019']
+    const params = Object.values(req.query).map((item) => Number(item));
     const data = await query(querySql, params);
     res.status(200).json({ receipt: data });
   } catch (error) {

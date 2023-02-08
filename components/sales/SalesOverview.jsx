@@ -111,7 +111,7 @@ const SalesOverview = () => {
     getProductGroupSoldQuantity(dateRangeProductGroupSoldQuantity);
   }, [dateRangeProductGroupSoldQuantity]);
 
-  const onChangRange = (_date, dateRange) => {
+  const onChangDateRangeProductGroup = (_date, dateRange) => {
     setDateRangeProductGroupSoldQuantity(dateRange);
   };
 
@@ -311,7 +311,7 @@ const SalesOverview = () => {
                 dayjs(dateRangeProductGroupSoldQuantity[1]),
               ]
             }
-            onChange={onChangRange}
+            onChange={onChangDateRangeProductGroup}
             style={{ marginBottom: "16px" }}
           />
           <ResponsiveContainer height={300}>
